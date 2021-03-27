@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from sensor import Sensor
+import numpy as np
 import pygame
 import rospy
 
@@ -23,9 +24,7 @@ PUBLISHER_DATATYPES = [CMD_VEL_MSG]
 SUBSCRIBER_DATATYPES = [CMD_VEL_MSG, IMAGE_MSG, ODOM_MSG, SCAN_MSG]
 
 
-pygame.init()
 WIDTH, HEIGHT = 900, 500
-WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 
 WHITE = (255, 255, 255)
 
@@ -50,9 +49,58 @@ KEY_ROTATE_RIGHT = pygame.K_e
 KEY_STOP = pygame.K_SPACE
 
 
-def draw_window():
-    WIN.fill(WHITE)
-    pygame.display.update()
+class UI:
+    def __init__(self):
+        self.bridge = CvBridge()
+        self.sensors = Sensor(PUBLISHER_DATATYPES, SUBSCRIBER_DATATYPES)
+        pygame.init()
+        self.window = pygame.display.set_mode((WIDTH, HEIGHT))
+        self.window.fill(WHITE)
+        self.keys_pressed = pygame.key.get_pressed()
+
+    def get_image(self):
+        if (image := self.sensors.get_msg(IMAGE_TOPIC)) is not None:
+            return self.bridge.imgmsg_to_cv2(image)
+        return None
+
+    def get_twist(self):
+        return self.sensors.get_msg(CMD_VEL_TOPIC)
+
+    def get_pose(self):
+        if (odom := self.sensors.get_msg(ODOM_MSG)) :
+            return odom.pose.pose
+        return None
+
+    def send_control_input(self):
+        if not (current_twist := self.get_twist()):
+            current_twist = Twist()
+
+        (vel_lin, vel_ang) = (
+            gas(current_twist.linear.x, self.keys_pressed),
+            steer(current_twist.linear.x, self.keys_pressed)
+            + rotate(current_twist.angular.z, self.keys_pressed),
+        )
+        new_twist = Twist()
+        new_twist.linear.x = vel_lin
+        new_twist.angular.z = vel_ang
+        self.sensors.publish((CMD_VEL_TOPIC, new_twist))
+
+    def set_background(self):
+        if (image := self.get_image()) is not None:
+            pygame_image = pygame.image.frombuffer(
+                image, (image.shape[1], image.shape[0]), "RGB"
+            )
+            pygame_image_resized = pygame.transform.scale(pygame_image, (WIDTH, HEIGHT))
+            self.window.blit(pygame_image_resized, (0, 0))
+
+    def draw_window(self):
+        pygame.display.update()
+
+    def update(self):
+        self.keys_pressed = pygame.key.get_pressed()
+        self.send_control_input()
+        self.set_background()
+        self.draw_window()
 
 
 def gas(lin_vel, keys_pressed):
@@ -108,31 +156,15 @@ def rotate(ang_vel, keys_pressed):
 def run():
     clock = pygame.time.Clock()
     run = True
-    sensors = Sensor(PUBLISHER_DATATYPES, SUBSCRIBER_DATATYPES)
+    ui = UI()
+
     while run:
         clock.tick(FPS)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
 
-        if not (current_twist := sensors.get_msg(CMD_VEL_TOPIC)):
-            current_twist = Twist()
-        current_odom = sensors.get_msg(ODOM_TOPIC)
-        current_scan = sensors.get_msg(SCAN_TOPIC)
-        current_image = sensors.get_msg(IMAGE_TOPIC)
-
-        keys_pressed = pygame.key.get_pressed()
-        (vel_lin, vel_ang) = (
-            gas(current_twist.linear.x, keys_pressed),
-            steer(current_twist.linear.x, keys_pressed)
-            + rotate(current_twist.angular.z, keys_pressed),
-        )
-        new_twist = Twist()
-        new_twist.linear.x = vel_lin
-        new_twist.angular.z = vel_ang
-        sensors.publish((CMD_VEL_TOPIC, new_twist))
-
-        draw_window()
+        ui.update()
 
     pygame.quit()
 

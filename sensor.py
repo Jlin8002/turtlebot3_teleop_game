@@ -1,9 +1,4 @@
-from dataclasses import dataclass
 import rospy
-
-from cv_bridge import CvBridge
-from geometry_msgs.msg import Twist
-
 
 QUEUE_SIZE = 10
 
@@ -35,7 +30,6 @@ class Sensor:
     def publish(self, *args):
         for (key, value) in args:
             try:
-                print(f"Publishing {value}")
                 self.publishers[key].publish(value)
             except KeyError:
                 print(f"No publisher found with topic name {key}.")
