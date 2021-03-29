@@ -3,7 +3,7 @@ A game-like interface for controlling the TurtleBot3 robot.
 
 ## Setup
 - Install pygame.
-- Run `teleop.py`.
+- Run `game.py`.
 
 ## Controls
 - W: Gas pedal (drive)
