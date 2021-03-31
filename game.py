@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from dashboard import Speedometer
 import numpy as np
 import pygame
 import rospy
@@ -17,9 +18,10 @@ SUBSCRIBER_MSGS = [msg.CMD_VEL_MSG, msg.IMAGE_MSG, msg.ODOM_MSG, msg.SCAN_MSG]
 
 TELEOP = True
 
-WIDTH, HEIGHT = 900, 500
-
-OVERLAY_DASH = False
+WIDTH = 900
+VIEW_HEIGHT = 500
+DASH_HEIGHT = 100
+HEIGHT = VIEW_HEIGHT + DASH_HEIGHT
 
 WHITE = (255, 255, 255)
 
@@ -33,6 +35,7 @@ class Game:
         pygame.init()
         self.window = pygame.display.set_mode((WIDTH, HEIGHT))
         self.window.fill(WHITE)
+        self.dash = Speedometer(WIDTH, DASH_HEIGHT, self.sensors)
         self.keys_pressed = pygame.key.get_pressed()
 
     def get_image(self):
@@ -51,8 +54,13 @@ class Game:
             pygame_image = pygame.image.frombuffer(
                 image, (image.shape[1], image.shape[0]), "RGB"
             )
-            pygame_image_resized = pygame.transform.scale(pygame_image, (WIDTH, HEIGHT))
+            pygame_image_resized = pygame.transform.scale(
+                pygame_image, (WIDTH, VIEW_HEIGHT)
+            )
             self.window.blit(pygame_image_resized, (0, 0))
+
+    def set_dash(self):
+        self.window.blit(self.dash.get_display(), (0, VIEW_HEIGHT))
 
     def draw_window(self):
         pygame.display.update()
@@ -61,6 +69,7 @@ class Game:
         self.keys_pressed = pygame.key.get_pressed()
         self.send_control_input()
         self.set_background()
+        self.set_dash()
         self.draw_window()
 
 

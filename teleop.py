@@ -4,15 +4,15 @@ from typing import List
 
 from geometry_msgs.msg import Twist
 
-ACC_LIN = 0.1  # meters per second
-ACC_ANG = 0.1  # meters per second
-DEC_LIN = 0.05
-DEC_ANG = 0.2
+ACC_LIN = 0.01  # meters per second
+ACC_ANG = 0.01  # meters per second
+DEC_LIN = 0.005
+DEC_ANG = 0.005
 MAX_LIN = 1
 MIN_LIN = -0.5
 MAX_ANG = 2
 MIN_ANG = -2
-TURN_FACTOR = 1.5
+TURN_FACTOR = 2
 
 KEY_MOVE_FORWARD = pygame.K_w
 KEY_MOVE_BACKWARD = pygame.K_s
@@ -21,6 +21,10 @@ KEY_TURN_RIGHT = pygame.K_d
 KEY_ROTATE_LEFT = pygame.K_q
 KEY_ROTATE_RIGHT = pygame.K_e
 KEY_STOP = pygame.K_SPACE
+
+
+def bound(x: float, lower: float, upper: float) -> float:
+    return min(max(x, lower), upper)
 
 
 def gas(lin_vel: float, keys_pressed: List[bool]) -> float:
@@ -35,11 +39,11 @@ def gas(lin_vel: float, keys_pressed: List[bool]) -> float:
         return 0
 
     if keys_pressed[KEY_MOVE_FORWARD]:
-        return min(lin_vel + ACC_LIN, MAX_LIN)
+        return bound(lin_vel + ACC_LIN, MIN_LIN, MAX_LIN)
     if keys_pressed[KEY_MOVE_BACKWARD]:
-        return max(lin_vel - ACC_LIN, MIN_LIN)
+        return bound(lin_vel - ACC_LIN, MIN_LIN, MAX_LIN)
 
-    return lin_vel
+    return max(min(lin_vel, MAX_LIN), MIN_LIN)
 
 
 def steer(lin_vel: float, keys_pressed: List[bool]) -> float:
@@ -51,11 +55,11 @@ def steer(lin_vel: float, keys_pressed: List[bool]) -> float:
     if keys_pressed[KEY_TURN_LEFT] == keys_pressed[KEY_TURN_RIGHT]:
         return 0
     if keys_pressed[KEY_TURN_LEFT]:
-        return min(abs(lin_vel) * TURN_FACTOR, MAX_ANG) * direction
+        return bound(abs(lin_vel) * TURN_FACTOR, MIN_ANG, MAX_ANG) * direction
     if keys_pressed[KEY_TURN_RIGHT]:
-        return max(abs(lin_vel) * -TURN_FACTOR, MIN_ANG) * direction
+        return bound(abs(lin_vel) * -TURN_FACTOR, MIN_ANG, MAX_ANG) * direction
 
-    return lin_vel
+    return 0
 
 
 def rotate(ang_vel: float, keys_pressed: List[bool]) -> float:
@@ -63,14 +67,25 @@ def rotate(ang_vel: float, keys_pressed: List[bool]) -> float:
         return 0
 
     if keys_pressed[KEY_ROTATE_LEFT] == keys_pressed[KEY_ROTATE_RIGHT]:
+        if (
+            keys_pressed[KEY_TURN_LEFT]
+            or keys_pressed[KEY_TURN_RIGHT]
+            or keys_pressed[KEY_MOVE_FORWARD]
+            or keys_pressed[KEY_MOVE_BACKWARD]
+        ):
+            return 0
+        if ang_vel > DEC_ANG:
+            return max(ang_vel - DEC_ANG, 0)
+        if ang_vel < -DEC_ANG:
+            return min(ang_vel + DEC_ANG, 0)
         return 0
 
     if keys_pressed[KEY_ROTATE_LEFT]:
-        return min(ang_vel + ACC_ANG, MAX_ANG)
+        return bound(ang_vel + ACC_ANG, MIN_ANG, MAX_ANG)
     if keys_pressed[KEY_ROTATE_RIGHT]:
-        return max(ang_vel - ACC_ANG, MIN_ANG)
+        return bound(ang_vel - ACC_ANG, MIN_ANG, MAX_ANG)
 
-    return ang_vel
+    return bound(ang_vel, MIN_ANG, MAX_ANG)
 
 
 def calculate_teleop_twist(current_twist, keys_pressed: List[bool]) -> Twist:
@@ -79,8 +94,11 @@ def calculate_teleop_twist(current_twist, keys_pressed: List[bool]) -> Twist:
         steer(current_twist.linear.x, keys_pressed)
         + rotate(current_twist.angular.z, keys_pressed),
     )
+    print("steer: ", steer(current_twist.linear.x, keys_pressed))
+    print("rotate: ", rotate(current_twist.angular.z, keys_pressed))
     new_twist = Twist()
     new_twist.linear.x = vel_lin
     new_twist.angular.z = vel_ang
+    print(vel_ang)
 
     return new_twist
