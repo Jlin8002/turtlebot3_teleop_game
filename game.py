@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from dashboard import Speedometer
+from dashboard import Dashboard, Speedometer
 import numpy as np
 import pygame
 import rospy
@@ -35,7 +35,7 @@ class Game:
         pygame.init()
         self.window = pygame.display.set_mode((WIDTH, HEIGHT))
         self.window.fill(WHITE)
-        self.dash = Speedometer(WIDTH, DASH_HEIGHT, self.sensors)
+        self.dash = Dashboard(WIDTH, DASH_HEIGHT, self.sensors)
         self.keys_pressed = pygame.key.get_pressed()
 
     def get_image(self):

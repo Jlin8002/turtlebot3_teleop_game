@@ -94,11 +94,8 @@ def calculate_teleop_twist(current_twist, keys_pressed: List[bool]) -> Twist:
         steer(current_twist.linear.x, keys_pressed)
         + rotate(current_twist.angular.z, keys_pressed),
     )
-    print("steer: ", steer(current_twist.linear.x, keys_pressed))
-    print("rotate: ", rotate(current_twist.angular.z, keys_pressed))
     new_twist = Twist()
     new_twist.linear.x = vel_lin
     new_twist.angular.z = vel_ang
-    print(vel_ang)
 
     return new_twist
