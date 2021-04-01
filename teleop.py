@@ -24,10 +24,16 @@ KEY_STOP = pygame.K_SPACE
 
 
 def bound(x: float, lower: float, upper: float) -> float:
+    """
+    Restrict a number to a range between a lower and upper bound.
+    """
     return min(max(x, lower), upper)
 
 
 def gas(lin_vel: float, keys_pressed: List[bool]) -> float:
+    """
+    Calculate a linear velocity for the robot based on keyboard input.
+    """
     if keys_pressed[KEY_STOP]:
         return 0
 
@@ -47,6 +53,10 @@ def gas(lin_vel: float, keys_pressed: List[bool]) -> float:
 
 
 def steer(lin_vel: float, keys_pressed: List[bool]) -> float:
+    """
+    Calculate an angular velocity for the robot based on keyboard input
+    using steering mechanics (turnable wheels).
+    """
     if keys_pressed[KEY_STOP]:
         return 0
 
@@ -62,7 +72,11 @@ def steer(lin_vel: float, keys_pressed: List[bool]) -> float:
     return 0
 
 
-def rotate(ang_vel: float, keys_pressed: List[bool]) -> float:
+def pivot(ang_vel: float, keys_pressed: List[bool]) -> float:
+    """
+    Calculate an angular velocity for the robot based on keyboard input
+    using pivot mechanics (wheels moving in opposite directions).
+    """
     if keys_pressed[KEY_STOP]:
         return 0
 
@@ -89,10 +103,13 @@ def rotate(ang_vel: float, keys_pressed: List[bool]) -> float:
 
 
 def calculate_teleop_twist(current_twist, keys_pressed: List[bool]) -> Twist:
+    """
+    Get a new twist for the robot based on keyboard input.
+    """
     (vel_lin, vel_ang) = (
         gas(current_twist.linear.x, keys_pressed),
         steer(current_twist.linear.x, keys_pressed)
-        + rotate(current_twist.angular.z, keys_pressed),
+        + pivot(current_twist.angular.z, keys_pressed),
     )
     new_twist = Twist()
     new_twist.linear.x = vel_lin

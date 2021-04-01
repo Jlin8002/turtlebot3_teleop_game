@@ -29,6 +29,10 @@ FPS = 60
 
 
 class Game:
+    """
+    Track inputs from the user and ROS and update the game window.
+    """
+
     def __init__(self) -> None:
         self.bridge = CvBridge()
         self.sensors = Sensor(PUBLISHER_MSGS, SUBSCRIBER_MSGS)
@@ -39,17 +43,26 @@ class Game:
         self.keys_pressed = pygame.key.get_pressed()
 
     def get_image(self):
+        """
+        Grab the newest image from the robot camera and convert it to an array.
+        """
         if (image := self.sensors.get_msg(msg.IMAGE_MSG)) is not None:
             return self.bridge.imgmsg_to_cv2(image)
         return None
 
     def send_control_input(self):
+        """
+        Check for user teleop input and send a velocity to cmd_vel.
+        """
         if TELEOP:
             current_twist = self.sensors.get_msg(msg.CMD_VEL_MSG)
             new_twist = calculate_teleop_twist(current_twist, self.keys_pressed)
             self.sensors.publish(msg.CMD_VEL_MSG, new_twist)
 
     def set_background(self):
+        """
+        Update the game background with the newest camera image.
+        """
         if (image := self.get_image()) is not None:
             pygame_image = pygame.image.frombuffer(
                 image, (image.shape[1], image.shape[0]), "RGB"
@@ -60,20 +73,26 @@ class Game:
             self.window.blit(pygame_image_resized, (0, 0))
 
     def set_dash(self):
+        """
+        Update the dashboard with the latest sensor readings.
+        """
         self.window.blit(self.dash.get_display(), (0, VIEW_HEIGHT))
 
-    def draw_window(self):
-        pygame.display.update()
-
     def update(self):
+        """
+        Update the game window.
+        """
         self.keys_pressed = pygame.key.get_pressed()
         self.send_control_input()
         self.set_background()
         self.set_dash()
-        self.draw_window()
+        pygame.display.update()
 
 
 def run():
+    """
+    Run the main game loop.
+    """
     clock = pygame.time.Clock()
     run = True
     game = Game()

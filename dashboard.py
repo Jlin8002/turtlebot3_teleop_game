@@ -15,6 +15,10 @@ GPS_X_RATIO = 2 / 3
 
 
 class DashComponent:
+    """
+    A parent class for a dashboard component.
+    """
+
     def __init__(self, width, height, sensor):
         self.width = width
         self.height = height
@@ -23,15 +27,28 @@ class DashComponent:
         self.font = pygame.font.Font(None, FONT_SIZE)
 
     def update(self):
+        """
+        Draw the component with updated values based on sensor readings.
+        """
         pass
 
     def get_display(self):
+        """
+        Return the updated display for use by other modules.
+        """
         self.update()
         return self.surface
 
 
 class Speedometer(DashComponent):
+    """
+    A speedometer dashboard component tracking cmd_vel.
+    """
+
     def update(self):
+        """
+        Draw the speedometer with the latest velocities.
+        """
         self.surface.fill((255, 255, 255))
 
         velocity_text = self.font.render("Velocity", 1, BLACK)
@@ -68,19 +85,31 @@ class Speedometer(DashComponent):
 
 
 class GPS(DashComponent):
+    """
+    A GPS dashboard component tracking scan and odom.
+    """
+
     def update(self):
+        """
+        Draw the GPS with the latest odometry and scan information.
+        """
         self.surface.fill(GREEN)
 
 
 class Dashboard(DashComponent):
+    """
+    The main dashboard consisting of all the above components.
+    """
+
     def __init__(self, width, height, sensor):
         super().__init__(width, height, sensor)
         self.speedometer = Speedometer(width * SPEEDOMETER_WIDTH_RATIO, height, sensor)
         self.GPS = GPS(width * GPS_WIDTH_RATIO, height, sensor)
 
     def update(self):
-        self.speedometer.update()
-        self.GPS.update()
+        """
+        Draw the entire dashboard with the latest sensor values.
+        """
         self.surface.blit(
             self.speedometer.get_display(), (self.width * SPEEDOMETER_X_RATIO, 0)
         )

@@ -8,6 +8,10 @@ from sensor_msgs.msg import Image, LaserScan
 
 @dataclass
 class ROSMsg:
+    """
+    Label a ROS message by the topic it originated from and the type of data it holds.
+    """
+
     topic: str
     type: type
 
@@ -21,4 +25,7 @@ SCAN_MSG = ROSMsg(topic="scan", type=LaserScan)
 
 
 def default_value(msg: ROSMsg) -> MsgType:
+    """
+    Return a ROS message initialized with no arguments.
+    """
     return msg.type()
