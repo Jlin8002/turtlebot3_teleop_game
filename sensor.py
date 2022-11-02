@@ -1,6 +1,6 @@
 import rospy
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 from msg import ROSMsg, MsgType, default_value
 
@@ -14,6 +14,7 @@ class Sensor:
 
     def __init__(self, publishers: List[ROSMsg], subscribers: List[ROSMsg]) -> None:
         rospy.init_node("teleop_game")
+        self.data: Dict[str, Optional[MsgType]] = {}
         self.initialize_publishers(publishers)
         self.initialize_subscribers(subscribers)
 
@@ -38,15 +39,14 @@ class Sensor:
             )
             for ros_msg in subscribers
         }
-        self.data: Dict[str, Optional[MsgType]] = {
-            msg.topic: None for msg in subscribers
-        }
+        self.data = {msg.topic: None for msg in subscribers}
 
     def handle_msg(self, msg: MsgType, topic: str) -> None:
         """
         Store the latest data from a subscriber.
         """
-        self.data[topic] = msg
+        if self.data:
+            self.data[topic] = msg
 
     def publish(self, ros_msg: ROSMsg, msg: MsgType) -> None:
         """
@@ -63,9 +63,8 @@ class Sensor:
         If no messages have been received, return a default message.
         """
         try:
-            if ((latest_msg := self.data[ros_msg.topic]) is not None) and isinstance(
-                latest_msg, ros_msg.type
-            ):
+            latest_msg = self.data[ros_msg.topic]
+            if (latest_msg is not None) and isinstance(latest_msg, ros_msg.type):
                 return latest_msg
             return default_value(ros_msg)
         except KeyError:
