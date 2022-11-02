@@ -49,7 +49,7 @@ class Speedometer(DashComponent):
         """
         Draw the speedometer with the latest velocities.
         """
-        self.surface.fill((255, 255, 255))
+        self.surface.fill(WHITE)
 
         velocity_text = self.font.render("Velocity", 1, BLACK)
         linear_text = self.font.render("Linear", 1, BLACK)
@@ -86,14 +86,60 @@ class Speedometer(DashComponent):
 
 class GPS(DashComponent):
     """
-    A GPS dashboard component tracking scan and odom.
+    A GPS dashboard component tracking odom.
     """
 
     def update(self):
         """
-        Draw the GPS with the latest odometry and scan information.
+        Draw the GPS with the latest odometry information.
         """
         self.surface.fill(GREEN)
+        x_text = self.font.render("x", 1, BLACK)
+        y_text = self.font.render("y", 1, BLACK)
+        z_text = self.font.render("z", 1, BLACK)
+
+        x_text_pos = x_text.get_rect(
+            centerx=self.width / 4, centery=self.height / 4
+        )
+        y_text_pos = y_text.get_rect(
+            centerx=self.width / 4, centery=self.height / 2
+        )
+        z_text_pos = z_text.get_rect(
+            centerx=self.width / 4, centery=self.height * 3 / 4
+        )
+
+        current_odom = self.sensor.get_msg(msg.ODOM_MSG)
+
+        x_pos_text = self.font.render(f"{current_odom.pose.pose.position.x:.3f}", 1, WHITE)
+        y_pos_text = self.font.render(f"{current_odom.pose.pose.position.y:.3f}", 1, WHITE)
+        z_pos_text = self.font.render(f"{current_odom.pose.pose.position.z:.3f}", 1, WHITE)
+
+        x_pos_text_pos = x_pos_text.get_rect(
+            centerx=self.width * 3 / 5, centery=self.height / 4
+        )
+        y_pos_text_pos = y_pos_text.get_rect(
+            centerx=self.width * 3 / 5, centery=self.height / 2
+        )
+        z_pos_text_pos = z_pos_text.get_rect(
+            centerx=self.width * 3 / 5, centery=self.height * 3 / 4
+        )
+
+        self.surface.blit(x_text, x_text_pos)
+        self.surface.blit(y_text, y_text_pos)
+        self.surface.blit(z_text, z_text_pos)
+        self.surface.blit(x_pos_text, x_pos_text_pos)
+        self.surface.blit(y_pos_text, y_pos_text_pos)
+        self.surface.blit(z_pos_text, z_pos_text_pos)
+
+class Map(DashComponent):
+    """
+    A map dashboard component tracking scan.
+    """
+    def update(self):
+        """
+        Draw the map with the latest scan information.
+        """
+        pass
 
 
 class Dashboard(DashComponent):
