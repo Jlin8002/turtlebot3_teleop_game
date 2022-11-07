@@ -1,0 +1,21 @@
+{
+    "topics":
+    {
+        "cmd_vel": "stretch/cmd_vel",
+        "image_raw": "camera/color/image_raw",
+        "odom": "odom",
+        "scan": "scan"
+    },
+    "constants":
+    {
+        "acc_lin": 0.1,
+        "acc_ang": 0.1,
+        "dec_lin": 0.1,
+        "dec_ang": 0.1,
+        "max_lin": 0.6,
+        "min_lin": -0.6,
+        "max_ang": 1.2,
+        "min_ang": -1.2,
+        "turn_factor": 2
+    }
+}

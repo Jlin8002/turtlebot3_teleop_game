@@ -20,14 +20,18 @@ class ROSMsg:
 
 MsgType = Union[Twist, Odometry, Image, LaserScan]
 
-CMD_VEL_MSG = ROSMsg(topic="cmd_vel", datatype=Twist)
-IMAGE_MSG = ROSMsg(topic="camera/rgb/image_raw", datatype=Image)
-ODOM_MSG = ROSMsg(topic="odom", datatype=Odometry)
-SCAN_MSG = ROSMsg(topic="scan", datatype=LaserScan)
-
 
 def default_value(msg: ROSMsg) -> MsgType:
     """
     Return a ROS message initialized with no arguments.
     """
     return msg.type()
+
+class TeleopMsgs:
+    def __init__(self, cmd_vel="cmd_vel", image_raw="camera/rgb/image_raw", odom="odom", scan="scan"): 
+        self.cmd_vel = ROSMsg(topic=cmd_vel, datatype=Twist)
+        self.image_raw = ROSMsg(topic=image_raw, datatype=Image)
+        self.odom = ROSMsg(topic=odom, datatype=Odometry)
+        self.scan = ROSMsg(topic=scan, datatype=LaserScan)
+        self.publisher_msgs = [self.cmd_vel]
+        self.subscriber_msgs = [self.cmd_vel, self.image_raw, self.odom, self.scan]

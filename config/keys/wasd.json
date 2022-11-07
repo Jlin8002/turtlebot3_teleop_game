@@ -1,0 +1,9 @@
+{
+    "forward": "w",
+    "backward": "s",
+    "turn_left": "a",
+    "turn_right": "d",
+    "rotate_left": "q",
+    "rotate_right": "e",
+    "stop": "space"
+}
